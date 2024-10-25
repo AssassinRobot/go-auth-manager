@@ -118,8 +118,9 @@ func (s *AuthManagerTestSuite) Test_GenerateAndDecodeAccessToken() {
 	ctx := context.TODO()
 	uuid := uuid.NewString()
 	expiration := time.Minute * 10
+	role := "admin"
 
-	token, err := s.authManager.GenerateAccessToken(ctx, uuid, expiration)
+	token, err := s.authManager.GenerateAccessToken(ctx, uuid, role,expiration)
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), token)
 
@@ -127,6 +128,7 @@ func (s *AuthManagerTestSuite) Test_GenerateAndDecodeAccessToken() {
 	decoded, err := s.authManager.DecodeAccessToken(ctx, token)
 	require.NoError(s.T(), err)
 	require.Equal(s.T(), decoded.Payload.UUID, uuid)
+	require.Equal(s.T(), decoded.Payload.Role, role)
 	require.Equal(s.T(), decoded.Payload.TokenType, auth_manager.AccessToken)
 	require.NotEmpty(s.T(), decoded.Payload.CreatedAt)
 }

@@ -32,7 +32,7 @@ const (
 )
 
 type AuthManager interface {
-	GenerateAccessToken(ctx context.Context, uuid string, expiresAt time.Duration) (string, error)
+	GenerateAccessToken(ctx context.Context, uuid,role string, expiresAt time.Duration) (string, error)
 	DecodeAccessToken(ctx context.Context, token string) (*AccessTokenClaims, error)
 	GenerateRefreshToken(ctx context.Context, uuid string, payload *RefreshTokenPayload, expiresAt time.Duration) (string, error)
 	TerminateRefreshTokens(ctx context.Context, uuid string) error
@@ -52,6 +52,7 @@ type AuthManagerOpts struct {
 // Used as jwt claims
 type TokenPayload struct {
 	UUID      string    `json:"uuid"`
+	Role string `json:"role"`
 	CreatedAt time.Time `json:"createdAt"`
 	TokenType TokenType `json:"tokenType"`
 }

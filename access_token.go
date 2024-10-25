@@ -16,12 +16,13 @@ type AccessTokenClaims struct {
 
 // The GenerateAccessToken method is used to generate Stateless JWT Token.
 // Notice that access tokens are not store at Redis Store and they are stateless!
-func (t *authManager) GenerateAccessToken(ctx context.Context, uuid string, expiresAt time.Duration) (string, error) {
+func (t *authManager) GenerateAccessToken(ctx context.Context, uuid,role string, expiresAt time.Duration) (string, error) {
 	now := time.Now()
 
 	claims := AccessTokenClaims{
 		Payload: TokenPayload{
 			UUID:      uuid,
+			Role: role,
 			TokenType: AccessToken,
 			CreatedAt: time.Now(),
 		},
