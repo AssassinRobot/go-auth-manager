@@ -21,10 +21,9 @@ const (
 type AuthManager interface {
 	GenerateAccessToken(ctx context.Context, uuid, role string, expiresAt time.Duration) (string, error)
 	DecodeAccessToken(ctx context.Context, token string) (*AccessTokenClaims, error)
-	GenerateRefreshToken(ctx context.Context, uuid string, payload *RefreshTokenPayload, expiresAt time.Duration) (string, error)
-	TerminateRefreshTokens(ctx context.Context, uuid string) error
-	RemoveRefreshToken(ctx context.Context, uuid string, token string) error
-	DecodeRefreshToken(ctx context.Context, uuid string, token string) (*RefreshTokenPayload, error)
+	GenerateRefreshToken(ctx context.Context, payload *RefreshTokenPayload, expiresAt time.Duration) (string, error)
+	TerminateRefreshTokens(ctx context.Context, token string) error
+	DecodeRefreshToken(ctx context.Context, token string) (*RefreshTokenPayload, error)
 	GenerateVerificationCode(ctx context.Context, key string, codeLengths int, expiresAt time.Duration) (string, error)
 	CompareVerificationCode(ctx context.Context, key, code string) (bool, error)
 	GeneratePlainToken(ctx context.Context, tokenType TokenType, payload *TokenPayload, expiresAt time.Duration) (string, error)

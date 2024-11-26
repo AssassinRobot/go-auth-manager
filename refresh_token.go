@@ -3,25 +3,25 @@ package auth_manager
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 )
 
 const refreshTokenByteLength = 32
 
-func generateHashKey(uuid string) string {
-	return fmt.Sprintf("refresh_token:%s", uuid)
-}
+// func generateHashKey(uuid string) string {
+// 	return fmt.Sprintf("refresh_token:%s", uuid)
+// }
 
 type RefreshTokenPayload struct {
 	IPAddress  string        `json:"ipAddress"`
 	UserAgent  string        `json:"userAgent"`
+	UserID     uint          `json:"userID"`
 	LoggedInAt time.Duration `json:"loggedInAt"`
 }
 
 // The GenerateToken method generates a random string with base64 with a static byte length
 // and stores it in the Redis store with provided expiration duration.
-func (t *authManager) GenerateRefreshToken(ctx context.Context, uuid string, payload *RefreshTokenPayload, expiresAt time.Duration) (string, error) {
+func (t *authManager) GenerateRefreshToken(ctx context.Context, payload *RefreshTokenPayload, expiresAt time.Duration) (string, error) {
 	// Generate random string
 	refreshToken, err := generateRandomString(refreshTokenByteLength)
 	if err != nil {
@@ -33,9 +33,7 @@ func (t *authManager) GenerateRefreshToken(ctx context.Context, uuid string, pay
 		return "", ErrEncodingPayload
 	}
 
-	err = t.redisClient.HSet(ctx, generateHashKey(uuid), []string{
-		refreshToken, string(payloadJson),
-	}).Err()
+	err = t.redisClient.Set(ctx, refreshToken, payloadJson, expiresAt).Err()
 	if err != nil {
 		return "", err
 	}
@@ -43,8 +41,8 @@ func (t *authManager) GenerateRefreshToken(ctx context.Context, uuid string, pay
 	return refreshToken, nil
 }
 
-func (t *authManager) DecodeRefreshToken(ctx context.Context, uuid string, token string) (*RefreshTokenPayload, error) {
-	payloadStr, err := t.redisClient.HGet(ctx, generateHashKey(uuid), token).Result()
+func (t *authManager) DecodeRefreshToken(ctx context.Context, token string) (*RefreshTokenPayload, error) {
+	payloadStr, err := t.redisClient.Get(ctx, token).Result()
 	if err != nil {
 		return nil, ErrInvalidToken
 	}
@@ -59,10 +57,6 @@ func (t *authManager) DecodeRefreshToken(ctx context.Context, uuid string, token
 	return payload, nil
 }
 
-func (t *authManager) TerminateRefreshTokens(ctx context.Context, uuid string) error {
-	return t.redisClient.Del(ctx, generateHashKey(uuid)).Err()
-}
-
-func (t *authManager) RemoveRefreshToken(ctx context.Context, uuid string, token string) error {
-	return t.redisClient.HDel(ctx, generateHashKey(uuid), token).Err()
+func (t *authManager) TerminateRefreshTokens(ctx context.Context, token string) error {
+	return t.redisClient.Del(ctx, token).Err()
 }
