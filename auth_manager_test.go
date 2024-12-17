@@ -133,6 +133,17 @@ func (s *AuthManagerTestSuite) Test_GenerateAndDecodeAccessToken() {
 	require.NotEmpty(s.T(), decoded.Payload.CreatedAt)
 }
 
+func (s *AuthManagerTestSuite) Test_SetAndCheckAccessToken() {
+	//set
+	ctx := context.TODO()
+	err := s.authManager.SetAccessTokenInBlackList(ctx,"accessToken",time.Minute * 5)
+	require.NoError(s.T(), err)
+
+	// check
+	isBlacklisted := s.authManager.IsAccessTokenBlacklisted(ctx, "accessToken")
+	s.True(isBlacklisted)
+}
+
 func (s *AuthManagerTestSuite) Test_RefreshToken() {
 	// Generate
 	ctx := context.TODO()
@@ -162,8 +173,8 @@ func (s *AuthManagerTestSuite) Test_RefreshToken() {
 	// require.NoError(s.T(), err)
 
 	// Terminates
-	// err = s.authManager.TerminateRefreshTokens(ctx, uuid)
-	// require.NoError(s.T(), err)
+	err = s.authManager.TerminateRefreshTokens(ctx, token)
+	require.NoError(s.T(), err)
 }
 
 func (s *AuthManagerTestSuite) Test_GenerateAndCompareVerificationCode() {

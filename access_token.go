@@ -16,13 +16,13 @@ type AccessTokenClaims struct {
 
 // The GenerateAccessToken method is used to generate Stateless JWT Token.
 // Notice that access tokens are not store at Redis Store and they are stateless!
-func (t *authManager) GenerateAccessToken(ctx context.Context, uuid,role string, expiresAt time.Duration) (string, error) {
+func (t *authManager) GenerateAccessToken(ctx context.Context, uuid, role string, expiresAt time.Duration) (string, error) {
 	now := time.Now()
 
 	claims := AccessTokenClaims{
 		Payload: TokenPayload{
 			UUID:      uuid,
-			Role: role,
+			Role:      role,
 			TokenType: AccessToken,
 			CreatedAt: time.Now(),
 		},
@@ -76,4 +76,14 @@ func (t *authManager) DecodeAccessToken(ctx context.Context, token string) (*Acc
 	}
 
 	return nil, ErrInvalidToken
+}
+
+func (t *authManager) SetAccessTokenInBlackList(ctx context.Context, accessToken string, expiresAt time.Duration) error {
+	err := t.redisClient.Set(ctx, accessToken, "blackList", expiresAt).Err()
+	return err
+}
+
+func (t *authManager) IsAccessTokenBlacklisted(ctx context.Context, accessToken string) bool {
+	result := t.redisClient.Exists(ctx, accessToken)
+	return result.Val() == 1
 }

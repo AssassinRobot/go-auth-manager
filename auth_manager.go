@@ -21,6 +21,8 @@ const (
 type AuthManager interface {
 	GenerateAccessToken(ctx context.Context, uuid, role string, expiresAt time.Duration) (string, error)
 	DecodeAccessToken(ctx context.Context, token string) (*AccessTokenClaims, error)
+	SetAccessTokenInBlackList(ctx context.Context, accessToken string, expiresAt time.Duration) error
+	IsAccessTokenBlacklisted(ctx context.Context, accessToken string) bool
 	GenerateRefreshToken(ctx context.Context, payload *RefreshTokenPayload, expiresAt time.Duration) (string, error)
 	TerminateRefreshTokens(ctx context.Context, token string) error
 	DecodeRefreshToken(ctx context.Context, token string) (*RefreshTokenPayload, error)
