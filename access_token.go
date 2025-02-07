@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	uid "github.com/google/uuid"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -30,8 +31,10 @@ func (t *authManager) GenerateAccessToken(ctx context.Context, uuid, role string
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(expiresAt)),
 			Issuer:    "go-auth-manager",
+			ID:uid.NewString(),
 		},
 	}
+	
 	jwtToken, err := jwt.NewWithClaims(TokenEncodingAlgorithm, claims).SignedString([]byte(t.opts.PrivateKey))
 	if err != nil {
 		return "", nil

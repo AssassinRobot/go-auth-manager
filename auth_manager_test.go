@@ -113,14 +113,14 @@ func (s *AuthManagerTestSuite) Test_GenerateAndDecodeToken() {
 	require.NotEmpty(s.T(), decoded.CreatedAt)
 }
 
-func (s *AuthManagerTestSuite) Test_GenerateAndDecodeAccessToken() {
+func (s *AuthManagerTestSuite) Test_GenerateAndDecodeAccessTokenAndCompare() {
 	// Generate
 	ctx := context.TODO()
 	uuid := uuid.NewString()
 	expiration := time.Minute * 10
 	role := "admin"
 
-	token, err := s.authManager.GenerateAccessToken(ctx, uuid, role,expiration)
+	token, err := s.authManager.GenerateAccessToken(ctx, uuid, role, expiration)
 	require.NoError(s.T(), err)
 	require.NotEmpty(s.T(), token)
 
@@ -131,12 +131,22 @@ func (s *AuthManagerTestSuite) Test_GenerateAndDecodeAccessToken() {
 	require.Equal(s.T(), decoded.Payload.Role, role)
 	require.Equal(s.T(), decoded.Payload.TokenType, auth_manager.AccessToken)
 	require.NotEmpty(s.T(), decoded.Payload.CreatedAt)
+
+	token1, err := s.authManager.GenerateAccessToken(ctx, uuid, role, expiration)
+	require.NoError(s.T(), err)
+	require.NotEqual(s.T(), token1, token)
+
+	token2, err := s.authManager.GenerateAccessToken(ctx, "another", role, expiration)
+	require.NoError(s.T(), err)
+	require.NotEqual(s.T(), token2, token)
+	require.NotEqual(s.T(), token2, token1)
+
 }
 
 func (s *AuthManagerTestSuite) Test_SetAndCheckAccessToken() {
 	//set
 	ctx := context.TODO()
-	err := s.authManager.SetAccessTokenInBlackList(ctx,"accessToken",time.Minute * 5)
+	err := s.authManager.SetAccessTokenInBlackList(ctx, "accessToken", time.Minute*5)
 	require.NoError(s.T(), err)
 
 	// check
@@ -151,7 +161,7 @@ func (s *AuthManagerTestSuite) Test_RefreshToken() {
 	payload := &auth_manager.RefreshTokenPayload{
 		IPAddress:  "ip-address",
 		UserAgent:  "user-agent",
-		UserID: 1,
+		UserID:     1,
 		LoggedInAt: time.Duration(time.Now().UnixMilli()),
 	}
 
@@ -166,7 +176,6 @@ func (s *AuthManagerTestSuite) Test_RefreshToken() {
 	require.Equal(s.T(), decoded.UserAgent, payload.UserAgent)
 	require.NotEmpty(s.T(), decoded.LoggedInAt)
 	require.NotEmpty(s.T(), decoded.UserID)
-
 
 	// Remove
 	// err = s.authManager.RemoveRefreshToken(ctx, uuid, token)
@@ -183,14 +192,14 @@ func (s *AuthManagerTestSuite) Test_GenerateAndCompareVerificationCode() {
 
 	uuid := uuid.NewString()
 
-	storedCode,generateCodeError := s.authManager.GenerateVerificationCode(ctx,uuid,6,2*time.Minute)
-	require.NoError(s.T(),generateCodeError)
+	storedCode, generateCodeError := s.authManager.GenerateVerificationCode(ctx, uuid, 6, 2*time.Minute)
+	require.NoError(s.T(), generateCodeError)
 
 	//Compare
 
-	isValid,compareError := s.authManager.CompareVerificationCode(ctx,uuid,storedCode)
-	require.NoError(s.T(),compareError)
-	require.True(s.T(),isValid)
+	isValid, compareError := s.authManager.CompareVerificationCode(ctx, uuid, storedCode)
+	require.NoError(s.T(), compareError)
+	require.True(s.T(), isValid)
 }
 func TestAuthManagerTestSuite(t *testing.T) {
 	suite.Run(t, new(AuthManagerTestSuite))
