@@ -2,6 +2,7 @@ package auth_manager
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -53,6 +54,10 @@ func (t *authManager) DecodeAccessToken(ctx context.Context, token string) (*Acc
 		},
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), "expired") {
+			return nil, ErrTokenExpired
+		}
+
 		return nil, ErrInvalidToken
 	}
 
